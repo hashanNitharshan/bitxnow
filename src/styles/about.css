@@ -1,0 +1,144 @@
+.about-page {
+  position: relative;
+  min-height: calc(100vh - 150px);
+  padding: 100px 0;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(240, 185, 11, 0.12),
+      transparent 34%
+    ),
+    #0b0e11;
+}
+
+.about-page::before {
+  position: absolute;
+  bottom: 10%;
+  left: -100px;
+  width: 300px;
+  height: 300px;
+  content: '';
+  background: rgba(240, 185, 11, 0.07);
+  border-radius: 50%;
+  filter: blur(75px);
+  pointer-events: none;
+}
+
+.about-container {
+  position: relative;
+  width: min(1100px, 90%);
+  margin: 0 auto;
+}
+
+.page-label {
+  margin-bottom: 14px;
+  color: #f0b90b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.about-container > h1 {
+  margin-bottom: 22px;
+  color: #ffffff;
+  font-size: clamp(2.6rem, 6vw, 4.8rem);
+  line-height: 1.08;
+  letter-spacing: -2px;
+}
+
+.about-introduction {
+  max-width: 720px;
+  margin-bottom: 55px;
+  color: #b7bdc6;
+  font-size: 1.08rem;
+  line-height: 1.8;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.about-card {
+  min-width: 0;
+  padding: 32px;
+  background: rgba(21, 25, 30, 0.82);
+  border: 1px solid #2b3139;
+  border-radius: 16px;
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.about-card:hover {
+  border-color: rgba(240, 185, 11, 0.65);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+  transform: translateY(-5px);
+}
+
+.about-number {
+  display: inline-block;
+  margin-bottom: 30px;
+  color: #f0b90b;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.about-card h2 {
+  margin-bottom: 14px;
+  color: #ffffff;
+  font-size: 1.5rem;
+}
+
+.about-card p {
+  color: #b7bdc6;
+  font-size: 0.96rem;
+  line-height: 1.75;
+}
+
+@media (max-width: 900px) {
+  .about-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-page {
+    padding: 75px 0;
+  }
+
+  .about-container > h1 {
+    letter-spacing: -1px;
+  }
+}
+
+@media (max-width: 600px) {
+  .about-container {
+    width: 92%;
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-card:last-child {
+    grid-column: auto;
+  }
+
+  .about-card {
+    padding: 26px 22px;
+  }
+
+  .about-introduction {
+    margin-bottom: 38px;
+    font-size: 1rem;
+  }
+}

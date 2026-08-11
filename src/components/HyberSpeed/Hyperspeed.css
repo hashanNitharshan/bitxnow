@@ -1,0 +1,15 @@
+.hyperspeed-canvas-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000000;
+  pointer-events: none;
+}
+
+.hyperspeed-canvas-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
