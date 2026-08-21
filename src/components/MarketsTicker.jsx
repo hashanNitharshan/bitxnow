@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import '../styles/marketsTicker.css'
 
 const POPULAR_IDS = ['bitcoin', 'ethereum', 'tether', 'binancecoin', 'tron']
@@ -19,6 +19,10 @@ const API_URL =
   '&sparkline=false&price_change_percentage=24h'
 
 const REFRESH_INTERVAL_MS = 60000
+
+// Where the "Trade" pill on each row sends people — same funnel as the
+// hero's "Get Started" button.
+const TRADE_URL = 'https://wallet.bitxnow.com/register'
 
 function formatPrice(value) {
   if (value === null || value === undefined) return '--'
@@ -45,6 +49,12 @@ function MarketsTicker() {
   const [coins, setCoins] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [query, setQuery] = useState('')
+  const [dirs, setDirs] = useState({})
+
+  // Holds each coin's price from the previous poll so we can flash the row
+  // green/red on an actual tick, not just show the static 24h change.
+  const prevPricesRef = useRef({})
 
   const fetchCoins = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true)
@@ -55,6 +65,25 @@ function MarketsTicker() {
         throw new Error(`Request failed with status ${response.status}`)
       }
       const data = await response.json()
+
+      const prev = prevPricesRef.current
+      setDirs(prevDirs => {
+        const nextDirs = {}
+        data.forEach(coin => {
+          const oldPrice = prev[coin.id]
+          const newPrice = coin.current_price
+          if (oldPrice !== undefined && newPrice !== undefined && newPrice !== oldPrice) {
+            nextDirs[coin.id] = newPrice > oldPrice ? 1 : -1
+          } else {
+            nextDirs[coin.id] = prevDirs[coin.id] || 0
+          }
+        })
+        return nextDirs
+      })
+      data.forEach(coin => {
+        prev[coin.id] = coin.current_price
+      })
+
       setCoins(data)
       setError(null)
     } catch (err) {
@@ -82,9 +111,16 @@ function MarketsTicker() {
     .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
     .slice(0, 5)
 
-  const listToShow = activeTab === 'popular' ? popularCoins : topGainers
+  const q = query.trim().toLowerCase()
+  const matchesQuery = coin =>
+    !q || coin.name.toLowerCase().includes(q) || coin.symbol.toLowerCase().includes(q)
+
+  const baseList = activeTab === 'popular' ? popularCoins : activeTab === 'gainers' ? topGainers : coins
+
+  const listToShow = q ? baseList.filter(matchesQuery) : baseList
   const hasCoins = coins.length > 0
   const showEmptyState = !loading && listToShow.length === 0 && (!error || hasCoins)
+  const skeletonRows = activeTab === 'all' ? 8 : 5
 
   return (
     <section className="markets-section">
@@ -114,19 +150,43 @@ function MarketsTicker() {
             >
               Top Gainers
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'all'}
+              className={`markets-tab ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              All Coins
+            </button>
           </div>
         </div>
 
-        <div className="markets-table">
+        <div className="markets-search">
+          <svg className="markets-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M18 18L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <input
+            type="text"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search coin by name or symbol…"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={`markets-table ${activeTab === 'all' ? 'markets-table--scroll' : ''}`}>
           <div className="markets-row markets-row-head">
             <span>Coin</span>
             <span>Price</span>
             <span>24h Change</span>
+            <span className="markets-col-action" aria-hidden="true" />
           </div>
 
           {loading && (
             <div className="markets-skeleton-wrap">
-              {Array.from({ length: 5 }).map((_, index) => (
+              {Array.from({ length: skeletonRows }).map((_, index) => (
                 <div className="markets-skeleton-row" key={index} />
               ))}
             </div>
@@ -143,7 +203,7 @@ function MarketsTicker() {
 
           {!loading && showEmptyState && (
             <div className="markets-state">
-              <p>No data to show right now.</p>
+              <p>{q ? `No coins match “${query}”.` : 'No data to show right now.'}</p>
             </div>
           )}
 
@@ -151,8 +211,15 @@ function MarketsTicker() {
             listToShow.length > 0 &&
             listToShow.map(coin => {
               const isPositive = (coin.price_change_percentage_24h ?? 0) >= 0
+              const dir = dirs[coin.id] || 0
               return (
-                <div className="markets-row" key={coin.id}>
+                <a
+                  className="markets-row markets-row-link"
+                  key={coin.id}
+                  href={TRADE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <span className="markets-coin">
                     <img src={coin.image} alt={coin.name} loading="lazy" />
                     <span className="markets-coin-names">
@@ -160,11 +227,20 @@ function MarketsTicker() {
                       <span className="markets-coin-symbol">{coin.symbol?.toUpperCase()}</span>
                     </span>
                   </span>
-                  <span className="markets-price">${formatPrice(coin.current_price)}</span>
+                  <span
+                    className={`markets-price ${
+                      dir > 0 ? 'flash-up' : dir < 0 ? 'flash-down' : ''
+                    }`}
+                  >
+                    ${formatPrice(coin.current_price)}
+                  </span>
                   <span className={`markets-change ${isPositive ? 'positive' : 'negative'}`}>
                     {formatChange(coin.price_change_percentage_24h)}
                   </span>
-                </div>
+                  <span className="markets-col-action">
+                    <span className="markets-trade-pill">Trade</span>
+                  </span>
+                </a>
               )
             })}
         </div>
