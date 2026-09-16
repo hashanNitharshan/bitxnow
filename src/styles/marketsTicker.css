@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Markets Ticker — live coin table (Popular / Top Gainers / All Coins)
+   Markets Ticker — live coin table (Popular / Top Gainers / All Coins / Hot Futures)
    Palette matches the BitXnow dark theme: near-black bg, gold accent.
    ========================================================================== */
 
@@ -195,6 +195,21 @@ a.markets-row-link:hover {
   border-radius: 50%;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.06);
+}
+
+.markets-coin-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(155deg, #D4A017, #C99400);
+  color: #14181F;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
 }
 
 .markets-coin-names {

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Hyperspeed from '../components/HyberSpeed/Hyperspeed'
 import MarketsTicker from '../components/MarketsTicker'
 import SecuritySection from '../components/SecuritySection'
+import CardSection from '../components/CardSection'
 import AppDownloadSection from '../components/AppDownloadSection'
 import FAQSection from '../components/FAQSection'
 
@@ -86,6 +87,7 @@ function Home() {
 
       <MarketsTicker />
       <SecuritySection />
+      <CardSection />
       <AppDownloadSection />
       <FAQSection />
     </main>
